@@ -191,7 +191,7 @@ static int frandom_open(struct inode *inode, struct file *filp)
 	 * explicitly
 	 */
 	if ((num != frandom_minor) && (num != erandom_minor)) return -ENODEV;
-  
+
 	state = kmalloc(sizeof(struct frandom_state), GFP_KERNEL);
 	if (!state)
 		return -ENOMEM;
@@ -418,4 +418,4 @@ MODULE_AUTHOR("Eli Billauer <eli@billauer.co.il>");
 MODULE_DESCRIPTION("'char_random_frandom' - A fast random generator for "
 "general usage");
 MODULE_LICENSE("GPL");
-
+ 
