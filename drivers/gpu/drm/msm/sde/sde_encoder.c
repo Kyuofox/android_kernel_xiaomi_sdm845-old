@@ -314,6 +314,7 @@ static struct sde_csc_cfg sde_csc_10bit_convert[SDE_MAX_CSC] = {
  * @input_handler:			handler for input device events
  * @topology:                   topology of the display
  * @vblank_enabled:		boolean to track userspace vblank vote
+ * @idle_pc_restore:		flag to indicate idle_pc_restore happened
  * @rsc_config:			rsc configuration for display vtotal, fps, etc.
  * @cur_conn_roi:		current connector roi
  * @prv_conn_roi:		previous connector roi to optimize if unchanged
@@ -363,6 +364,7 @@ struct sde_encoder_virt {
 	bool input_handler_registered;
 	struct msm_display_topology topology;
 	bool vblank_enabled;
+	bool idle_pc_restore;
 
 	struct sde_rsc_cmd_config rsc_config;
 	struct sde_rect cur_conn_roi;
@@ -2915,11 +2917,18 @@ void sde_encoder_virt_restore(struct drm_encoder *drm_enc)
 		return;
 	}
 	sde_enc = to_sde_encoder_virt(drm_enc);
+	sde_enc->idle_pc_restore = true;
 
 	for (i = 0; i < sde_enc->num_phys_encs; i++) {
 		struct sde_encoder_phys *phys = sde_enc->phys_encs[i];
 
-		if (phys && (phys != sde_enc->cur_master) && phys->ops.restore)
+		if (!phys)
+			continue;
+
+		if (phys->hw_ctl && phys->hw_ctl->ops.clear_pending_flush)
+			phys->hw_ctl->ops.clear_pending_flush(phys->hw_ctl);
+
+		if ((phys != sde_enc->cur_master) && phys->ops.restore)
 			phys->ops.restore(phys);
 	}
 
@@ -3826,7 +3835,13 @@ void sde_encoder_trigger_kickoff_pending(struct drm_encoder *drm_enc)
 
 		if (phys && phys->hw_ctl) {
 			ctl = phys->hw_ctl;
-			if (ctl->ops.clear_pending_flush)
+			/*
+			 * avoid clearing the pending flush during the first
+			 * frame update after idle power collpase as the
+			 * restore path would have updated the pending flush
+			 */
+			if (!sde_enc->idle_pc_restore &&
+					ctl->ops.clear_pending_flush)
 				ctl->ops.clear_pending_flush(ctl);
 
 			/* update only for command mode primary ctl */
@@ -3836,6 +3851,7 @@ void sde_encoder_trigger_kickoff_pending(struct drm_encoder *drm_enc)
 				ctl->ops.trigger_pending(ctl);
 		}
 	}
+	sde_enc->idle_pc_restore = false;
 }
 
 static void _sde_encoder_setup_dither(struct sde_encoder_phys *phys)
