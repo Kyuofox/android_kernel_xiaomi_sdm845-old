@@ -10175,7 +10175,6 @@ done:
 }
 
 #ifdef CONFIG_SOUND_CONTROL
-static struct snd_soc_codec *sound_control_codec_ptr;
 static int speaker_gain_val = 6;
 int sound_control_speaker_gain(int gain);
 
@@ -10201,6 +10200,9 @@ static ssize_t headphone_gain_store(struct kobject *kobj,
 
 	if (input_r < -84 || input_r > 20)
 		input_r = 0;
+
+	custom_hp_left = input_l;
+	custom_hp_right = input_r;
 
 	snd_soc_write(sound_control_codec_ptr, WCD934X_CDC_RX1_RX_VOL_MIX_CTL, input_l);
 	snd_soc_write(sound_control_codec_ptr, WCD934X_CDC_RX2_RX_VOL_MIX_CTL, input_r);
