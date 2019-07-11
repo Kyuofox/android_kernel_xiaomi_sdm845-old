@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2016-2018, 2020 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2016-2018, The Linux Foundation. All rights reserved.
  * Copyright (C) 2013 Red Hat
+ * Copyright (C) 2019 XiaoMi, Inc.
  * Author: Rob Clark <robdclark@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -57,6 +58,11 @@
 #define MSM_VERSION_MAJOR	1
 #define MSM_VERSION_MINOR	2
 #define MSM_VERSION_PATCHLEVEL	0
+
+static struct kmem_cache *kmem_vblank_work_pool;
+
+atomic_t resume_pending;
+wait_queue_head_t resume_wait_q;
 
 static void msm_fb_output_poll_changed(struct drm_device *dev)
 {
@@ -221,7 +227,7 @@ static void vblank_ctrl_worker(struct kthread_work *work)
 	else
 		kms->funcs->disable_vblank(kms, priv->crtcs[cur_work->crtc_id]);
 
-	kfree(cur_work);
+	kmem_cache_free(kmem_vblank_work_pool, cur_work);
 }
 
 static int vblank_ctrl_queue_work(struct msm_drm_private *priv,
@@ -232,7 +238,7 @@ static int vblank_ctrl_queue_work(struct msm_drm_private *priv,
 	if (!priv || crtc_id >= priv->num_crtcs)
 		return -EINVAL;
 
-	cur_work = kzalloc(sizeof(*cur_work), GFP_ATOMIC);
+	cur_work = kmem_cache_zalloc(kmem_vblank_work_pool, GFP_ATOMIC);
 	if (!cur_work)
 		return -ENOMEM;
 
@@ -1448,27 +1454,24 @@ static int msm_ioctl_register_event(struct drm_device *dev, void *data,
 	 * calls add to client list and return.
 	 */
 	count = msm_event_client_count(dev, req_event, false);
-	if (count) {
-		/* Add current client to list */
-		spin_lock_irqsave(&dev->event_lock, flag);
-		list_add_tail(&client->base.link, &priv->client_event_list);
-		spin_unlock_irqrestore(&dev->event_lock, flag);
+	/* Add current client to list */
+	spin_lock_irqsave(&dev->event_lock, flag);
+	list_add_tail(&client->base.link, &priv->client_event_list);
+	spin_unlock_irqrestore(&dev->event_lock, flag);
+
+	if (count)
 		return 0;
-	}
 
 	ret = msm_register_event(dev, req_event, file, true);
 	if (ret) {
 		DRM_ERROR("failed to enable event %x object %x object id %d\n",
 			req_event->event, req_event->object_type,
 			req_event->object_id);
-		kfree(client);
-	} else {
-		/* Add current client to list */
 		spin_lock_irqsave(&dev->event_lock, flag);
-		list_add_tail(&client->base.link, &priv->client_event_list);
+		list_del(&client->base.link);
 		spin_unlock_irqrestore(&dev->event_lock, flag);
+		kfree(client);
 	}
-
 	return ret;
 }
 
@@ -1748,6 +1751,19 @@ static struct drm_driver msm_driver = {
 };
 
 #ifdef CONFIG_PM_SLEEP
+static int msm_pm_prepare(struct device *dev)
+{
+	atomic_inc(&resume_pending);
+	return 0;
+}
+
+static void msm_pm_complete(struct device *dev)
+{
+	atomic_set(&resume_pending, 0);
+	wake_up_all(&resume_wait_q);
+	return;
+}
+
 static int msm_pm_suspend(struct device *dev)
 {
 	struct drm_device *ddev;
@@ -1800,6 +1816,8 @@ static int msm_pm_resume(struct device *dev)
 #endif
 
 static const struct dev_pm_ops msm_pm_ops = {
+	.prepare = msm_pm_prepare,
+	.complete = msm_pm_complete,
 	SET_SYSTEM_SLEEP_PM_OPS(msm_pm_suspend, msm_pm_resume)
 };
 
@@ -2144,6 +2162,7 @@ void __exit adreno_unregister(void)
 static int __init msm_drm_register(void)
 {
 	DBG("init");
+	kmem_vblank_work_pool = KMEM_CACHE(vblank_work, SLAB_HWCACHE_ALIGN | SLAB_PANIC);
 	msm_smmu_driver_init();
 	msm_dsi_register();
 	msm_edp_register();
