@@ -51,7 +51,7 @@
 static uint disable_restart_work;
 module_param(disable_restart_work, uint, 0644);
 
-static int enable_debug;
+static int enable_debug = 0;
 module_param(enable_debug, int, 0644);
 
 /* The maximum shutdown timeout is the product of MAX_LOOPS and DELAY_MS. */
@@ -392,8 +392,8 @@ EXPORT_SYMBOL(subsys_bus_type);
 
 static DEFINE_IDA(subsys_ida);
 
-static int enable_ramdumps;
-module_param(enable_ramdumps, int, 0644);
+static int enable_ramdumps = 0;
+module_param(enable_ramdumps, int, 0444);
 
 static int enable_mini_ramdumps;
 module_param(enable_mini_ramdumps, int, 0644);
