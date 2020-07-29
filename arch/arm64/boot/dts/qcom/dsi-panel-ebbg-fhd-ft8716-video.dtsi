@@ -1,5 +1,5 @@
 /* Copyright (c) 2015, The Linux Foundation. All rights reserved.
- * Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -37,7 +37,6 @@
 		qcom,mdss-dsi-lane-1-state;
 		qcom,mdss-dsi-lane-2-state;
 		qcom,mdss-dsi-lane-3-state;
-
 		qcom,mdss-dsi-bl-min-level = <1>;
 		qcom,mdss-dsi-bl-max-level = <4095>;
 		qcom,mdss-brightness-max-level = <4095>;
@@ -49,16 +48,15 @@
 		qcom,mdss-pan-physical-height-dimension = <136>;
 		qcom,cont-splash-enabled;
 		qcom,mdss-dsi-tx-eot-append;
-		qcom,mdss-panel-on-dimming-delay = <120>;
-
+		qcom,mdss-panel-on-dimming-delay = <100>;
 		qcom,mdss-dsi-pan-enable-dynamic-fps;
 		qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
-		qcom,dsi-supported-dfps-list = <60 55>;
+		qcom,dsi-supported-dfps-list = <60 55 50>;
 		qcom,dispccbb-enabled;
 		qcom,dispblnotify-enabled;
 		qcom,dispparam-enabled;
 		/*qcom,disp-paneloff-disablecabc-enabled;*/
-		qcom,mdss-night-brightness = <7 25 43 61>;
+		qcom,mdss-night-brightness = <1 7 25 43 61>;
 		qcom,disp-panel-offon-mode-enabled;
 		qcom,mdss-dsi-panel-hdr-enabled;
 		qcom,mdss-dsi-panel-hdr-color-primaries = <14500 15500 32000
@@ -68,8 +66,6 @@
 		qcom,mdss-dsi-panel-xy-coordinate = <0x04 0x3>;
 		qcom,mdss-dsi-panel-max-luminance = <0x01 0x01>;
 		qcom,mdss-dsi-panel-bl-info = <308 545 420 700>;
-
-		qcom,esd-check-enabled;
 		qcom,mdss-dsi-panel-status-check-mode = "reg_read";
 		qcom,mdss-dsi-panel-status-command =
 			[06 01 00 01 00 00 01 0A
@@ -84,18 +80,16 @@
 		/*qcom,mdss-dsi-panel-on-check-value = <0x9c>;*/
 		qcom,mdss-dsi-panel-status-read-length = <1 1 1 1 1 1 1>;
 		qcom,mdss-panel-off-keep-reset;
-
 		qcom,ulps-enabled;
  		qcom,suspend-ulps-enabled;
 		qcom,panel-allow-phy-poweroff;
-
 		qcom,mdss-dsi-display-timings {
 			timing@0{
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-dsi-panel-width = <1080>;
 				qcom,mdss-dsi-panel-height = <2160>;
-				qcom,mdss-dsi-h-front-porch = <28>;
-				qcom,mdss-dsi-h-back-porch = <28>;
+				qcom,mdss-dsi-h-front-porch = <26>;
+				qcom,mdss-dsi-h-back-porch = <26>;
 				qcom,mdss-dsi-h-pulse-width = <4>;
 				qcom,mdss-dsi-h-sync-skew = <0>;
 				qcom,mdss-dsi-v-back-porch = <16>;
@@ -105,7 +99,6 @@
 				qcom,mdss-dsi-h-right-border = <0>;
 				qcom,mdss-dsi-v-top-border = <0>;
 				qcom,mdss-dsi-v-bottom-border = <0>;
-
 				qcom,mdss-dsi-on-command = [
 					15 00 00 00 00 00 02 00 00
 					29 00 00 00 00 00 04 FF 87 16 01
@@ -224,7 +217,6 @@
 					29 01 00 00 00 00 03 ff 87 16
 					15 00 00 00 00 00 02 00 81
 					29 00 00 00 00 00 0d f3 f8 e1 00 f8 e1 00 00 1e 00 00 1e 00
-
 					15 00 00 00 00 00 02 51 FF
 					15 00 00 00 00 00 02 53 24
 					15 00 00 00 00 00 02 55 00
@@ -244,7 +236,6 @@
 				qcom,mdss-dsi-displayoff-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-displayon-command-state = "dsi_hs_mode";
 				qcom,mdss-dsi-h-sync-pulse = <1>;
-
 				qcom,mdss-dsi-dispparam-cabcuion-command = [
 					15 01 00 00 00 00 02 55 01
 					15 01 00 00 00 00 02 91 00
@@ -265,7 +256,6 @@
 					15 01 00 00 00 00 02 91 00
 					];
 				qcom,mdss-dsi-dispparam-cabcoff-command-state = "dsi_hs_mode";
-
 				qcom,mdss-dsi-dispparam-skince-cabcuion-command = [
 					15 01 00 00 00 00 02 55 01
 					15 01 00 00 00 00 02 91 80];
@@ -282,7 +272,6 @@
 					15 01 00 00 01 00 02 55 00
 					15 01 00 00 00 00 02 91 80];
 				qcom,mdss-dsi-dispparam-skince-cabcoff-command-state = "dsi_hs_mode";
-
 				qcom,mdss-dsi-dispparam-dimmingon-command = [
 					39 01 00 00 01 00 02 53 2C
 					];
