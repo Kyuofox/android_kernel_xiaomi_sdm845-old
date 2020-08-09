@@ -1145,7 +1145,7 @@ err_pinctrl_sleep:
 static int rtmv20_i2c_remove(struct i2c_client *client)
 {
 	struct rtmv20_chip_data *chip = i2c_get_clientdata(client);
-	if (&chip->cdev)
+	if (&chip->cdev != NULL)
 		cdev_del(&(chip->cdev));
 
 	if (chip->chr_dev)
