@@ -311,6 +311,8 @@ config CPU_INPUT_BOOST
 	  frame drops are near-zero at the boosted frequencies and power
 	  consumption is minimized at said frequency combination.
 
+endif
+
 if CPU_INPUT_BOOST
 
 config INPUT_BOOST_DURATION_MS
