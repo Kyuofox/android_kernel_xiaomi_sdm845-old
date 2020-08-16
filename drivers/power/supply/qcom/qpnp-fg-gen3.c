@@ -1622,7 +1622,7 @@ out:
 static void fg_cap_learning_update(struct fg_chip *chip)
 {
 	int rc;
-	unsigned int batt_soc, batt_soc_msb, cc_soc_sw, msoc;
+	unsigned int batt_soc, batt_soc_msb, cc_soc_sw;
 	bool input_present = is_input_present(chip);
 	bool prime_cc = false;
 
