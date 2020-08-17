@@ -5361,7 +5361,7 @@ CONFIG_KLAPSE=y
 #
 # Touchpaint
 #
-CONFIG_TOUCHPAINT=y
+# CONFIG_TOUCHPAINT is not set
 
 #
 # Sound Control
