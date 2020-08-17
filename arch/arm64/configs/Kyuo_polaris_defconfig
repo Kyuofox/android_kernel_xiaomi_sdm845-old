@@ -5328,3 +5328,8 @@ CONFIG_KLAPSE=y
 # Touchpaint
 #
 CONFIG_TOUCHPAINT=y
+
+#
+# Sound Control
+#
+CONFIG_SOUND_CONTROL=y
