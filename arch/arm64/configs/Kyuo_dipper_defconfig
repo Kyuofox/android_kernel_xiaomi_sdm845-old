@@ -5322,3 +5322,8 @@ CONFIG_MACH_XIAOMI_E1N=y
 # K-Lapse
 #
 CONFIG_KLAPSE=y
+
+#
+# Touchpaint
+#
+CONFIG_TOUCHPAINT=y

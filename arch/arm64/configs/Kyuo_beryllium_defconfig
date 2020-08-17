@@ -5357,3 +5357,8 @@ CONFIG_MACH_XIAOMI_E10=y
 # K-Lapse
 #
 CONFIG_KLAPSE=y
+
+#
+# Touchpaint
+#
+CONFIG_TOUCHPAINT=y
