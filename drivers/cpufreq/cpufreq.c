@@ -1,19 +1,3 @@
-/*
- *  linux/drivers/cpufreq/cpufreq.c
- *
- *  Copyright (C) 2001 Russell King
- *            (C) 2002 - 2003 Dominik Brodowski <linux@brodo.de>
- *            (C) 2013 Viresh Kumar <viresh.kumar@linaro.org>
- *
- *  Oct 2005 - Ashok Raj <ashok.raj@intel.com>
- *	Added handling for CPU hotplug
- *  Feb 2006 - Jacob Shin <jacob.shin@amd.com>
- *	Fix handling for CPU hotplug -- affected CPUs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
@@ -252,7 +236,7 @@ struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu)
 	struct cpufreq_policy *policy = NULL;
 	unsigned long flags;
 
-	if (WARN_ON(cpu >= nr_cpu_ids))
+	if (cpu >= nr_cpu_ids)
 		return NULL;
 
 	/* get the cpufreq driver */
