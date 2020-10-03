@@ -1,5 +1,5 @@
 /* Copyright (c) 2015, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,6 +26,7 @@
 		qcom,mdss-dsi-virtual-channel-id = <0>;
 		qcom,mdss-dsi-stream = <0>;
 		qcom,mdss-dsi-bpp = <24>;
+		//qcom,mdss-dsi-color-order = <0>;
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-traffic-mode = "burst_mode";
@@ -55,8 +56,8 @@
 		qcom,mdss-dsi-te-check-enable;
 		qcom,mdss-dsi-te-using-te-pin;
 		qcom,mdss-dsi-tx-eot-append;
-		qcom,mdss-panel-on-dimming-delay = <100>;
-		qcom,mdss-night-brightness = <1 7 25 43 61>;
+		qcom,mdss-panel-on-dimming-delay = <120>;
+		qcom,mdss-night-brightness = <7 25 43 61>;
 		qcom,ulps-enabled;
  		qcom,suspend-ulps-enabled;
 		qcom,panel-allow-phy-poweroff;
@@ -64,8 +65,8 @@
 			timing@0{
 				qcom,mdss-dsi-panel-width = <1080>;
 				qcom,mdss-dsi-panel-height = <1920>;
-				qcom,mdss-dsi-h-front-porch = <100>;
-				qcom,mdss-dsi-h-back-porch = <36>;
+				qcom,mdss-dsi-h-front-porch = <120>;
+				qcom,mdss-dsi-h-back-porch = <40>;
 				qcom,mdss-dsi-h-pulse-width = <16>;
 				qcom,mdss-dsi-h-sync-skew = <0>;
 				qcom,mdss-dsi-v-back-porch = <4>;
@@ -76,6 +77,7 @@
 				qcom,mdss-dsi-v-top-border = <0>;
 				qcom,mdss-dsi-v-bottom-border = <0>;
 				qcom,mdss-dsi-panel-framerate = <60>;
+
 				qcom,mdss-dsi-on-command = [
 					29 00 00 00 00 00 02 b0 00
 					29 00 00 00 00 00 02 d6 01
