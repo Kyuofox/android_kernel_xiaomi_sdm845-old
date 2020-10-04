@@ -49,7 +49,6 @@ extern int32_t nvt_mp_proc_init(void);
 #endif
 
 struct nvt_ts_data *ts;
-struct kmem_cache *kmem_ts_data_pool;
 
 static struct workqueue_struct *nvt_wq;
 
@@ -553,7 +552,7 @@ static int32_t nvt_flash_close(struct inode *inode, struct file *file)
 	struct nvt_flash_data *dev = file->private_data;
 
 	if (dev)
-		kmem_cache_free(kmem_ts_data_pool, dev);
+		kfree(dev);
 
 	return 0;
 }
@@ -1046,41 +1045,43 @@ return:
 *******************************************************/
 static void nvt_ts_work_func(struct work_struct *work)
 {
-	int32_t ret;
-	uint8_t point_data[POINT_DATA_LEN + 1] = { 0, };
-	uint32_t position;
-	uint32_t input_x;
-	uint32_t input_y;
-	uint32_t input_w;
-	uint32_t input_p;
-	uint8_t input_id;
+	int32_t ret = -1;
+	uint8_t point_data[POINT_DATA_LEN + 1] = {0};
+	uint32_t position = 0;
+	uint32_t input_x = 0;
+	uint32_t input_y = 0;
+	uint32_t input_w = 0;
+	uint32_t input_p = 0;
+	uint8_t input_id = 0;
 #if MT_PROTOCOL_B
 	uint8_t press_id[TOUCH_MAX_FINGER_NUM] = {0};
 #endif /* MT_PROTOCOL_B */
-	int32_t i;
-	int32_t finger_cnt;
+	int32_t i = 0;
+	int32_t finger_cnt = 0;
 
 	mutex_lock(&ts->lock);
 
-	if (unlikely(ts->dev_pm_suspend)) {
+	if (ts->dev_pm_suspend) {
 		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(500));
 		if (!ret) {
 			NVT_ERR("system(i2c) can't finished resuming procedure, skip it\n");
-			goto out;
+			goto XFER_ERROR;
 		}
 	}
 
 	ret = CTP_I2C_READ(ts->client, I2C_FW_Address, point_data, POINT_DATA_LEN + 1);
-	if (unlikely(ret < 0)) {
+	if (ret < 0) {
 		NVT_ERR("CTP_I2C_READ failed.(%d)\n", ret);
-		goto out;
+		goto XFER_ERROR;
 	}
 
 #if WAKEUP_GESTURE
-	if (unlikely(bTouchIsAwake == 0)) {
+	if (bTouchIsAwake == 0) {
 		input_id = (uint8_t)(point_data[1] >> 3);
 		nvt_ts_wakeup_gesture_report(input_id, point_data);
-		goto out;
+		enable_irq(ts->client->irq);
+		mutex_unlock(&ts->lock);
+		return;
 	}
 #endif
 
@@ -1165,10 +1166,11 @@ static void nvt_ts_work_func(struct work_struct *work)
 	}
 #endif
 
-XFER_ERROR:
 	input_sync(ts->input_dev);
 
-out:
+XFER_ERROR:
+	enable_irq(ts->client->irq);
+
 	mutex_unlock(&ts->lock);
 }
 
@@ -1181,6 +1183,7 @@ return:
 *******************************************************/
 static irqreturn_t nvt_ts_irq_handler(int32_t irq, void *dev_id)
 {
+	disable_irq_nosync(ts->client->irq);
 	if (bTouchIsAwake == 0) {
 		dev_dbg(&ts->client->dev, "%s gesture wakeup\n", __func__);
 	}
@@ -1521,7 +1524,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 
 	NVT_LOG("start\n");
 
-	ts = kmem_cache_zalloc(kmem_ts_data_pool, GFP_KERNEL);
+	ts = kzalloc(sizeof(struct nvt_ts_data), GFP_KERNEL);
 	if (ts == NULL) {
 		NVT_ERR("failed to allocated memory for nvt ts data\n");
 		return -ENOMEM;
@@ -1797,7 +1800,7 @@ err_check_functionality_failed:
 		gpio_free(ts->reset_gpio);
 err_gpio_config_failed:
 	i2c_set_clientdata(client, NULL);
-	kmem_cache_free(kmem_ts_data_pool, ts);
+	kfree(ts);
 	return ret;
 }
 
@@ -1829,7 +1832,7 @@ static int32_t nvt_ts_remove(struct i2c_client *client)
 	free_irq(client->irq, ts);
 	input_unregister_device(ts->input_dev);
 	i2c_set_clientdata(client, NULL);
-	kmem_cache_free(kmem_ts_data_pool, ts);
+	kfree(ts);
 
 	return 0;
 }
@@ -2092,12 +2095,6 @@ static int32_t __init nvt_driver_init(void)
 	int32_t ret = 0;
 
 	NVT_LOG("start\n");
-	
-	kmem_ts_data_pool = KMEM_CACHE(nvt_ts_data, SLAB_HWCACHE_ALIGN | SLAB_PANIC);
-	if (!kmem_ts_data_pool) {
-		return -ENOMEM;
-	}
-
 	/*---add i2c driver---*/
 	ret = i2c_add_driver(&nvt_i2c_driver);
 	if (ret) {
@@ -2121,7 +2118,6 @@ return:
 static void __exit nvt_driver_exit(void)
 {
 	i2c_del_driver(&nvt_i2c_driver);
-	kmem_cache_destroy(kmem_ts_data_pool);
 
 	if (nvt_wq)
 		destroy_workqueue(nvt_wq);
