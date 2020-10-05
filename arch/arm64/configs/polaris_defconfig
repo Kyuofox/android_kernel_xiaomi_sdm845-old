@@ -5330,6 +5330,11 @@ CONFIG_KLAPSE=y
 # CONFIG_TOUCHPAINT is not set
 
 #
+# App-blocker
+#
+CONFIG_BLOCK_UNWANTED_APPS=y
+
+#
 # Sound Control
 #
 CONFIG_SOUND_CONTROL=y
