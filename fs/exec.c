@@ -1271,6 +1271,13 @@ void __set_task_comm(struct task_struct *tsk, const char *buf, bool exec)
 		unlikely(strstr(tsk->comm, "com.miui.systemAdSolution")) ||
 		unlikely(strstr(tsk->comm, "com.xiaomi.ab")) ||
 		unlikely(strstr(tsk->comm, "com.miui.analytics")) ||
+	        unlikely(strstr(tsk->comm, "com.antutu.ABenchMark")) ||
+	        unlikely(strstr(tsk->comm, "com.antutu.benchmark.full")) ||
+	        unlikely(strstr(tsk->comm, "com.ludashi.benchmark")) ||
+	        unlikely(strstr(tsk->comm, "com.qihoo360.mobilesafe")) ||
+	        unlikely(strstr(tsk->comm, "com.andromeda.androbench2")) ||
+	        unlikely(strstr(tsk->comm, "com.primatelabs.geekbench")) ||
+	        unlikely(strstr(tsk->comm, "com.primatelabs.geekbench5c")) ||
 		unlikely(strstr(tsk->comm, "tcpdump"))) {
 		struct task_kill_info *kinfo;
 		kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
