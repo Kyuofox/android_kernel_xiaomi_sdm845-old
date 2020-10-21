@@ -127,6 +127,10 @@ static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 
 #endif	/* CONFIG_GENERIC_BUG */
 
+#ifdef CONFIG_EXT4_PANIC_SYNC
+void exec_fs_sync_work(void);
+#endif
+
 #ifdef CONFIG_PANIC_ON_DATA_CORRUPTION
 #define PANIC_CORRUPTION 1
 #else

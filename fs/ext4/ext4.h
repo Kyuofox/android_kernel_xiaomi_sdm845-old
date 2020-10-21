@@ -1142,6 +1142,9 @@ struct ext4_inode_info {
 #define EXT4_MOUNT_BLOCK_VALIDITY	0x20000000 /* Block validity checking */
 #define EXT4_MOUNT_DISCARD		0x40000000 /* Issue DISCARD requests */
 #define EXT4_MOUNT_INIT_INODE_TABLE	0x80000000 /* Initialize uninitialized itables */
+#ifdef CONFIG_EXT4_AFSYNC
+#define EXT4_MOUNT_ASYNC_FSYNC 		0x2000000 /* FileSystem AFSYNC */
+#endif
 
 /*
  * Mount flags set either automatically (could not be set by mount option)
@@ -1493,6 +1496,14 @@ struct ext4_sb_info {
 
 	/* record the last minlen when FITRIM is called. */
 	atomic_t s_last_trim_minblks;
+	
+#ifdef CONFIG_EXT4_AFSYNC
+	/* Total sync Fsync filesystem. */
+	atomic_t s_total_fsync;
+
+	/* Asynchronous fsync status. */
+	atomic_t s_async_fsync;
+#endif
 
 	/* Reference to checksum algorithm driver via cryptoapi */
 	struct crypto_shash *s_chksum_driver;

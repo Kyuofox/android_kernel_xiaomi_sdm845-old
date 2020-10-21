@@ -139,6 +139,12 @@ void panic(const char *fmt, ...)
 	int state = 0;
 	int old_cpu, this_cpu;
 	bool _crash_kexec_post_notifiers = crash_kexec_post_notifiers;
+	
+#ifdef CONFIG_EXT4_PANIC_SYNC
+	if (!in_atomic()) {
+		exec_fs_sync_work();
+	}
+#endif
 
 	trace_kernel_panic(0);
 

@@ -18,6 +18,11 @@
 #include <linux/backing-dev.h>
 #include "internal.h"
 
+/*
+ * Warnings:
+ * Please do not try to close Fsync unless you have done a data backup
+ * Otherwise, it is not recommended that you turn off Fsync.
+ */
 bool fsync_enabled = true;
 module_param(fsync_enabled, bool, 0644);
 

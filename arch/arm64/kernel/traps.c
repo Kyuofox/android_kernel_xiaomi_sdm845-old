@@ -46,6 +46,12 @@
 #include <asm/sysreg.h>
 #include <trace/events/exception.h>
 
+#ifdef CONFIG_EXT4_PANIC_SYNC
+#define FS_SYNC_TIMEOUT_MS 2000
+
+#include <linux/workqueue.h>
+#endif
+
 static const char *handler[]= {
 	"Synchronous Abort",
 	"IRQ",
@@ -267,6 +273,26 @@ static arch_spinlock_t die_lock = __ARCH_SPIN_LOCK_UNLOCKED;
 static int die_owner = -1;
 static unsigned int die_nest_count;
 
+#ifdef CONFIG_EXT4_PANIC_SYNC
+static struct work_struct fs_sync_work;
+static DECLARE_COMPLETION(sync_compl);
+static void fs_sync_work_func(struct work_struct *work)
+{
+	sys_sync();
+	complete(&sync_compl);
+}
+
+void exec_fs_sync_work(void)
+{
+	INIT_WORK(&fs_sync_work, fs_sync_work_func);
+	reinit_completion(&sync_compl);
+	schedule_work(&fs_sync_work);
+	if (wait_for_completion_timeout(&sync_compl, msecs_to_jiffies(FS_SYNC_TIMEOUT_MS)) == 0)
+		pr_emerg("sys_sync:wait complete timeout\n");
+}
+EXPORT_SYMBOL(exec_fs_sync_work);
+#endif
+
 static unsigned long oops_begin(void)
 {
 	int cpu;
@@ -321,6 +347,12 @@ void die(const char *str, struct pt_regs *regs, int err)
 	enum bug_trap_type bug_type = BUG_TRAP_TYPE_NONE;
 	unsigned long flags = oops_begin();
 	int ret;
+
+#ifdef CONFIG_EXT4_PANIC_SYNC
+	if (!in_atomic()) {
+		exec_fs_sync_work();
+	}
+#endif
 
 	if (!user_mode(regs))
 		bug_type = report_bug(regs->pc, regs);

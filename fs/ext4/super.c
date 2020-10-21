@@ -1301,6 +1301,9 @@ enum {
 	Opt_dioread_nolock, Opt_dioread_lock,
 	Opt_discard, Opt_nodiscard, Opt_init_itable, Opt_noinit_itable,
 	Opt_max_dir_size_kb, Opt_nojournal_checksum,
+#ifdef CONFIG_EXT4_AFSYNC
+	Opt_async_fsync, Opt_noasync_fsync,
+#endif
 };
 
 static const match_table_t tokens = {
@@ -1387,6 +1390,10 @@ static const match_table_t tokens = {
 	{Opt_removed, "reservation"},	/* mount option from ext2/3 */
 	{Opt_removed, "noreservation"}, /* mount option from ext2/3 */
 	{Opt_removed, "journal=%u"},	/* mount option from ext2/3 */
+#ifdef CONFIG_EXT4_AFSYNC
+	{Opt_async_fsync, "async_fsync"},  /* mount option ASYNC */
+	{Opt_noasync_fsync, "noasync_fsync"},  /* mount option NOAFSYNC */
+#endif
 	{Opt_err, NULL},
 };
 
@@ -1413,7 +1420,12 @@ static ext4_fsblk_t get_sb_block(void **data)
 	return sb_block;
 }
 
+#ifdef CONFIG_EXT4_AFSYNC
+#define DEFAULT_JOURNAL_IOPRIO (IOPRIO_PRIO_VALUE(IOPRIO_CLASS_RT, 4))
+#else
 #define DEFAULT_JOURNAL_IOPRIO (IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE, 3))
+#endif
+
 static char deprecated_msg[] = "Mount option \"%s\" will be removed by %s\n"
 	"Contact linux-ext4@vger.kernel.org if you think we should keep it.\n";
 
@@ -1587,6 +1599,10 @@ static const struct mount_opts {
 	{Opt_jqfmt_vfsv1, QFMT_VFS_V1, MOPT_QFMT},
 	{Opt_max_dir_size_kb, 0, MOPT_GTE0},
 	{Opt_test_dummy_encryption, 0, MOPT_GTE0},
+#ifdef CONFIG_EXT4_AFSYNC
+	{Opt_async_fsync, EXT4_MOUNT_ASYNC_FSYNC, MOPT_SET},
+	{Opt_noasync_fsync, EXT4_MOUNT_ASYNC_FSYNC, MOPT_CLEAR},
+#endif
 	{Opt_err, 0, 0}
 };
 
@@ -1781,7 +1797,7 @@ static int handle_mount_opt(struct super_block *sb, char *opt, int token,
 	} else if (m->flags & MOPT_DATAJ) {
 		if (is_remount) {
 			if (!sbi->s_journal)
-				ext4_msg(sb, KERN_WARNING, "Remounting file system with no journal so ignoring journalled data option");
+				ext4_msg(sb, KERN_WARNING, "Remounting file system with journalled data option");
 			else if (test_opt(sb, DATA_FLAGS) != m->mount_opt) {
 				ext4_msg(sb, KERN_ERR,
 					 "Cannot change data mode on remount");
@@ -3579,6 +3595,11 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
 	set_opt(sb, BLOCK_VALIDITY);
 	if (def_mount_opts & EXT4_DEFM_DISCARD)
 		set_opt(sb, DISCARD);
+	
+#ifdef CONFIG_EXT4_AFSYNC
+	/* Enable ASYNC_FSYNC */
+	set_opt(sb, ASYNC_FSYNC);
+#endif
 
 	sbi->s_resuid = make_kuid(&init_user_ns, le16_to_cpu(es->s_def_resuid));
 	sbi->s_resgid = make_kgid(&init_user_ns, le16_to_cpu(es->s_def_resgid));
