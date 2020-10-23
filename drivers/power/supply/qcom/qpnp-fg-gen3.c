@@ -4340,6 +4340,9 @@ static int fg_psy_set_property(struct power_supply *psy,
 		if (rc < 0)
 			pr_err("Error in saving learned_cc_uah, rc=%d\n", rc);
 		break;
+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+		chip->cl.nom_cap_uah = pval->intval;
+		break;
 	case POWER_SUPPLY_PROP_COLD_TEMP:
 		rc = fg_set_jeita_threshold(chip, JEITA_COLD, pval->intval);
 		if (rc < 0) {
@@ -4383,6 +4386,7 @@ static int fg_property_is_writeable(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CC_STEP:
 	case POWER_SUPPLY_PROP_CC_STEP_SEL:
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
 	case POWER_SUPPLY_PROP_COLD_TEMP:
 	case POWER_SUPPLY_PROP_COOL_TEMP:
 	case POWER_SUPPLY_PROP_WARM_TEMP:
@@ -5373,8 +5377,6 @@ static int fg_parse_ki_coefficients(struct fg_chip *chip)
 #define DEFAULT_DELTA_SOC_THR		1
 #define DEFAULT_RECHARGE_SOC_THR	95
 #define DEFAULT_BATT_TEMP_COLD		0
-#define DEFAULT_BATT_TEMP_COOL		5
-#define DEFAULT_BATT_TEMP_WARM		48
 #define DEFAULT_BATT_TEMP_HOT		50
 #define DEFAULT_CL_START_SOC		15
 #define DEFAULT_CL_MIN_TEMP_DECIDEGC	150
@@ -5397,6 +5399,10 @@ static int fg_parse_ki_coefficients(struct fg_chip *chip)
 #define DEFAULT_ESR_PULSE_THRESH_MA	110
 #define DEFAULT_ESR_MEAS_CURR_MA	120
 #define DEFAULT_BMD_EN_DELAY_MS	200
+static unsigned int DEFAULT_BATT_TEMP_COOL = 5;
+static unsigned int DEFAULT_BATT_TEMP_WARM = 48;
+module_param(DEFAULT_BATT_TEMP_WARM, uint, 0644);
+module_param(DEFAULT_BATT_TEMP_COOL, uint, 0644);
 static int fg_parse_dt(struct fg_chip *chip)
 {
 	struct device_node *child, *revid_node, *node = chip->dev->of_node;
