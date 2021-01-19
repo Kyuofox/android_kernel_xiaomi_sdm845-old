@@ -16,6 +16,10 @@
 static bool disable_boosts __read_mostly;
 module_param(disable_boosts, bool, 0644);
 
+#ifndef CONFIG_CPU_INPUT_BOOST
+	unsigned long last_input_time;
+#endif
+
 /* The sched_param struct is located elsewhere in newer kernels */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
 #include <uapi/linux/sched/types.h>
@@ -232,6 +236,10 @@ static void devfreq_boost_input_event(struct input_handle *handle,
 
 	for (i = 0; i < DEVFREQ_MAX; i++)
 		__devfreq_boost_kick(d->devices + i);
+
+#ifndef CONFIG_CPU_INPUT_BOOST
+	last_input_time = jiffies;
+#endif
 }
 
 static int devfreq_boost_input_connect(struct input_handler *handler,
